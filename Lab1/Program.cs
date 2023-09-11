@@ -16,7 +16,7 @@
                 if (int.TryParse(Console.ReadLine(), out choice) is false)
                 {
                     Console.WriteLine("Bad input");
-                    return;
+                    continue;
                 }
 
                 switch (choice)
@@ -27,13 +27,7 @@
                     case 2:
                         {
                             Console.Write("Word: _\b");
-                            string? word = Console.ReadLine();
-
-                            if (word is null)
-                            {
-
-                                break;
-                            }
+                            string? word = Console.ReadLine();                          
 
                             List<string> resultLogs = automaton.Exec(word);
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace FormalLanTheor
@@ -9,9 +10,9 @@ namespace FormalLanTheor
 
         string? initState;
         List<string> finalStates;
-        List<char> alphabet;       
+        List<char> alphabet;
         Dictionary<string, Dictionary<char, string>> transMatrix;
-     
+
 
         public Automat(string path)
         {
@@ -34,32 +35,51 @@ namespace FormalLanTheor
         public List<string> Exec(string word)
         {
             List<string> logs = new();
-            string curState = initState;
 
             foreach (char letter in word)
-            {      
+            {
+                if (alphabet.Contains(letter) is false)
+                {
+                    logs.Add("The given word is out of alphabet");
+                    return logs;
+                }
+            }
+           
+            string curState = initState;
+            int i = word.Length;
+
+            foreach (char letter in word)
+            {
+                --i;
+
                 string nextState = transMatrix[curState][letter];
                 logs.Add($"{letter}: {curState} -> {nextState}");
-
-                if (nextState.Equals(PassSymb))
-                {
-                    logs.Add("The final state wasn`t reached");
-                    break;
-                }
 
                 if (finalStates.Contains(nextState))
                 {
                     logs.Add("The final state was reached");
                     break;
                 }
-                         
+
+                if (nextState.Equals(PassSymb) || i == 0)
+                {
+                    logs.Add("The final state wasn`t reached");
+                    break;
+                }
+
                 curState = nextState;
             }
 
             if (word.Length == 0)
             {
-                logs.Add("Empty input");
-                logs.Add("The final state wasn`t reached");
+                if (finalStates.Contains(curState))
+                {
+                    logs.Add("The final state was reached");
+                }
+                else
+                {
+                    logs.Add("The final state wasn`t reached");
+                }              
             }
 
             return logs;
@@ -75,10 +95,21 @@ namespace FormalLanTheor
             Console.WriteLine($"Final state(s): {string.Join(", ", finalStates)}");
 
             Console.WriteLine("Transition matrix:");
-            Console.WriteLine($"{new string(' ', 3)} {string.Join("  ", alphabet)}");
+            Console.WriteLine($"{new string(' ', 4)}\t{string.Join("  ", alphabet)}");
             foreach (var line in transMatrix)
             {
-                Console.WriteLine($"{line.Key} | {string.Join("  ", line.Value.Values)}");
+                string pred = new string(' ', 3);
+
+                if (initState.Contains(line.Key))
+                {
+                    pred = "->";
+                }
+                if (finalStates.Contains(line.Key))
+                {
+                    pred += (pred.Last() == ' ') ? "\b*" : "*";
+                }
+
+                Console.WriteLine($"{pred}{line.Key} |\t{string.Join("  ", line.Value.Values)}");
             }
 
             Console.WriteLine();
