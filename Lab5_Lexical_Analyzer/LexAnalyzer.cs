@@ -1,0 +1,407 @@
+﻿using Lab5_Lexical_Analyzer.Enums;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
+
+namespace Lab5_Lexical_Analyzer
+{
+    public static class LexAnalyzer
+    {
+        public static (bool, List<Lexeme>) Analyze(string codeStr)
+        {
+            States curState = States.Start;
+            States prevState;
+            bool isLexEnd;
+            int textPos = 0;
+            var lexemes = new List<Lexeme>();
+            var lexemeCur = new StringBuilder();
+            var lexemeNext = new StringBuilder();
+
+            while (curState != States.Final && curState != States.Error)
+            {
+                prevState = curState;
+                isLexEnd = true;
+                char symbol;
+
+                if (textPos == codeStr.Length)
+                {
+                    curState = States.Final;
+                    symbol = '.';
+                }
+                else
+                {
+                    symbol = codeStr[textPos];
+                }
+
+                switch (curState)
+                {
+                    case States.Start:
+                        {
+                            isLexEnd = false;
+
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                break;
+                            }
+                            else if (char.IsDigit(symbol))
+                            {
+                                curState = States.Const;
+                            }
+                            else if (char.IsLetter(symbol))
+                            {
+                                curState = States.Word;
+                            }
+                            else if (symbol == '>')
+                            {
+                                curState = States.ComparisonRight;
+                            }
+                            else if (symbol == '<')
+                            {
+                                curState = States.ComparisonLeft;
+                            }
+                            else if (symbol == '+' || symbol == '-')
+                            {
+                                curState = States.Arithmetic;
+                            }
+                            else if (symbol == '=')
+                            {
+                                curState = States.Assignment;
+                            }
+                            else if (symbol == ';')
+                            {
+                                curState = States.Delimiter;
+                            }
+                            else
+                            {
+                                curState = States.Error;
+                                isLexEnd = false;
+                                break;
+                            }
+
+                            lexemeCur.Append(symbol);
+                            break;
+                        }
+                    case States.Word:
+                        {
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                curState = States.Start;
+                                break;
+                            }
+                            else if (char.IsLetterOrDigit(symbol))
+                            {
+                                lexemeCur.Append(symbol);
+                                isLexEnd = false;
+                            }
+                            else if (symbol == ';')
+                            {
+                                curState = States.Delimiter;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '>')
+                            {
+                                curState = States.ComparisonRight;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '<')
+                            {
+                                curState = States.ComparisonLeft;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '=')
+                            {
+                                curState = States.Assignment;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '+' || symbol == '-')
+                            {
+                                curState = States.Arithmetic;
+                                lexemeNext.Append(symbol);
+                            }
+                            else
+                            {
+                                curState = States.Error;
+                                isLexEnd = false;
+                            }
+
+                            break;
+                        }
+                    case States.Const:
+                        {
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                curState = States.Start;
+                            }
+                            else if (char.IsDigit(symbol))
+                            {
+                                lexemeCur.Append(symbol);
+                                isLexEnd = false;
+                            }
+                            else if (symbol == ';')
+                            {
+                                curState = States.Delimiter;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '>')
+                            {
+                                curState = States.ComparisonRight;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '<')
+                            {
+                                curState = States.ComparisonLeft;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '=')
+                            {
+                                curState = States.Assignment;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '+' || symbol == '-')
+                            {
+                                curState = States.Arithmetic;
+                                lexemeNext.Append(symbol);
+                            }
+                            else
+                            {
+                                curState = States.Error;
+                                isLexEnd = false;
+                            }
+
+                            break;
+                        }
+                    case States.Comparison:
+                    case States.ComparisonRight:
+                        {
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                curState = States.Start;
+                            }
+                            else if (char.IsDigit(symbol))
+                            {
+                                curState = States.Const;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (char.IsLetter(symbol))
+                            {
+                                curState = States.Word;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == ';')
+                            {
+                                curState = States.Delimiter;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '=')
+                            {
+                                curState = States.Start;
+                                lexemeCur.Append(symbol);
+                            }
+                            else
+                            {
+                                curState = States.Error;
+                                isLexEnd = false;
+                            }
+
+                            break;
+                        }
+                    case States.ComparisonLeft:
+                        {
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                curState = States.Start;
+                            }
+                            else if (symbol == ';')
+                            {
+                                curState = States.Delimiter;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '>')
+                            {
+                                curState = States.Start;
+                                lexemeCur.Append(symbol);
+                            }
+                            else if (symbol == '=')
+                            {
+                                curState = States.Start;
+                                lexemeCur.Append(symbol);
+                            }
+                            else if (char.IsLetter(symbol))
+                            {
+                                curState = States.Word;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (char.IsDigit(symbol))
+                            {
+                                curState = States.Const;
+                                lexemeNext.Append(symbol);
+                            }
+                            else
+                            {
+                                curState = States.Error;
+                                isLexEnd = false;
+                            }
+
+                            break;
+                        }
+                    case States.Arithmetic:
+                        {
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                curState = States.Start;
+                            }
+                            else if (char.IsLetter(symbol))
+                            {
+                                curState = States.Word;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (char.IsDigit(symbol))
+                            {
+                                curState = States.Const;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == ';')
+                            {
+                                curState = States.Delimiter;
+                                lexemeNext.Append(symbol);
+                            }
+                            else if (symbol == '+' || symbol == '-')
+                            {
+                                lexemeNext.Append(symbol);
+                            }
+                            else
+                            {
+                                curState = States.Error;
+                                isLexEnd = false;
+                            }
+
+                            break;
+                        }
+                    case States.Assignment:
+                        {
+                            if (symbol == '=')
+                            {
+                                lexemeCur.Append(symbol);
+                            }
+                            else
+                            {
+                                lexemeNext.Append(symbol);
+                            }
+
+                            curState = States.Start;
+                            break;
+                        }
+                    case States.Delimiter:
+                        {
+                            if (char.IsWhiteSpace(symbol))
+                            {
+                                curState = States.Start;
+                                break;
+                            }
+                            else if (char.IsDigit(symbol))
+                            {
+                                curState = States.Const;
+                            }
+                            else if (char.IsLetter(symbol))
+                            {
+                                curState = States.Word;
+                            }
+                            else if (symbol == '>')
+                            {
+                                curState = States.ComparisonRight;
+                            }
+                            else if (symbol == '<')
+                            {
+                                curState = States.ComparisonLeft;
+                            }
+                            else if (symbol == '+' || symbol == '-')
+                            {
+                                curState = States.Arithmetic;
+                            }
+                            else if (symbol == '=')
+                            {
+                                curState = States.Assignment;
+                            }
+                            else if (symbol == ';') { }
+                            else
+                            {
+                                isLexEnd = false;
+                                curState = States.Error;
+                                break;
+                            }
+
+                            lexemeNext.Append(symbol);
+                            break;
+                        }
+                    default:
+                        break;
+                }
+
+                if (isLexEnd)
+                {
+                    AddLexem(prevState, lexemeCur.ToString().Trim(), lexemes);
+                    lexemeCur = lexemeNext;
+                    lexemeNext = new();
+                }
+
+                textPos++;
+            }
+
+            return (curState == States.Final, lexemes);
+        }
+
+        private static void AddLexem(States state, string value, List<Lexeme> lexems)
+        {
+            var lexType = LexTypes.Const;
+            var lexCat = Categories.Const;
+
+            switch (state)
+            {
+                case States.Const:
+                    lexType = LexTypes.Const;
+                    lexCat = Categories.Const;
+                    break;
+                case States.Delimiter:
+                    lexType = LexTypes.Delimiter;
+                    lexCat = Categories.SpecSymb;
+                    break;
+                case States.Word:
+                    switch (value)
+                    {
+                        case "for":
+                            lexType = LexTypes.For;
+                            lexCat = Categories.Keyword;
+                            break;
+                        case "next":
+                            lexType = LexTypes.Next;
+                            lexCat = Categories.Keyword;
+                            break;
+                        case "to":
+                            lexType = LexTypes.To;
+                            lexCat = Categories.Keyword;
+                            break;
+                        default:
+                            lexType = LexTypes.Var;
+                            lexCat = Categories.Identifier;
+                            break;
+                    }
+                    break;
+                case States.Arithmetic:
+                    lexType = LexTypes.Arithmetic;
+                    lexCat = Categories.SpecSymb;
+                    break;
+                case States.Assignment:
+                    lexCat = Categories.SpecSymb;
+                    lexType = value == "==" ? LexTypes.Relation : LexTypes.Assignment;
+                    break;
+                case States.Comparison:
+                case States.ComparisonRight:
+                case States.ComparisonLeft:
+                    lexType = LexTypes.Relation;
+                    lexCat = Categories.SpecSymb;
+                    break;
+            }
+
+            lexems.Add(new Lexeme(lexType, lexCat, value));
+        }
+    }
+}
