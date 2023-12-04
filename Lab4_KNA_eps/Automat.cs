@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.Metrics;
+using System.Linq;
 using System.Text;
 
 namespace Lab4_KNA_eps
@@ -32,91 +33,95 @@ namespace Lab4_KNA_eps
             }
         }
 
-        public Dictionary<string, string> GetEpsilonClosure(string state)
-        {
-            var epsilonClosure = new Dictionary<string, string>();
-
-            void EpsilonClosureDFS(string curState)
-            {
-                if (epsilonClosure.ContainsKey(curState))
-                {
-                    return;
-                }
-
-                epsilonClosure.Add(curState, curState);
-
-                foreach (string nextState in transMatrix[curState][EpsSymb])
-                {               
-                    epsilonClosure.Add(nextState, curState);
-                    EpsilonClosureDFS(nextState);
-                }
-            }
-
-            EpsilonClosureDFS(state);
-
-            return epsilonClosure;
-        }
-
         public List<string> ExecuteNFAWithEpsilonTransitions(string word)
         {
             var logs = new List<string>();
-            var currentStates = new HashSet<string>();
+            var statesCurrentStack = new Stack<string>();
+            statesCurrentStack.Push(initState);
 
-            bool NFAWithEpsilonTransitionsDFS(string curState, string remainingInput, int step)
+            string AddEpsilonTransitions(string state)
             {
-                Dictionary<string, string> epsTransitions = GetEpsilonClosure(curState);
-                foreach (var transition in epsTransitions)
+                if (finalStates.Contains(state))
                 {
-                    logs.Add($"Из состояния {{{transition.Value}}} в состояние {{{transition.Key}}} по слову '{EpsSymb}'");
-
-                    if (finalStates.Contains(transition.Key))
-                    {
-                        return true;
-                    }
+                    return state;
                 }
 
-                currentStates.UnionWith(epsTransitions.Keys);
-
-                if (remainingInput.Length != 0)
+                if (!transMatrix[state][EpsSymb].First().Equals(PassSymb))
                 {
-                    string symbol = remainingInput[0].ToString();
-                    string newRemainingInput = remainingInput.Substring(1);
-
-                    HashSet<string> nextStates = new HashSet<string>();
-
-                    foreach (string state in currentStates)
+                    foreach (var nextState in transMatrix[state][EpsSymb])
                     {
-                        if (transMatrix.ContainsKey(state) && transMatrix[state].ContainsKey(symbol))
-                        {
-                            nextStates.UnionWith(transMatrix[state][symbol]);
-                        }
-                    }
+                        logs.Add($"Эпсилон-переход из состояния {{{state}}} в состояние {{{nextState}}}");
 
-                    foreach (string nextState in nextStates)
-                    {
-                        logs.Add($"Из состояния {{{curState}}} в состояние {{{nextState}}} по слову '{symbol}'");
-                        if (finalStates.Contains(nextState) || NFAWithEpsilonTransitionsDFS(nextState, newRemainingInput, step + 1))
+                        if (!statesCurrentStack.Contains(nextState))
                         {
-                            return true;
+                            statesCurrentStack.Push(nextState);
+                            string finalState = AddEpsilonTransitions(nextState);
+
+                            if (finalState != null)
+                            {
+                                return finalState;
+                            }
                         }
                     }
                 }
 
-                return false;
+                return null;
             }
 
-            const string Accept = "Конечное состояние достигнуто";
-            const string Reject = "Конечное состояние НЕ достигнуто";
+            var statesNextSet = new HashSet<string>();
+            var logsTemp = new Queue<string>();
 
-            if (word.Length == 0 && finalStates.Contains(initState))
+            foreach (char letter in word)
             {
-                logs.Add(Accept);
-            }
-            else
-            {
-                logs.Add(NFAWithEpsilonTransitionsDFS(initState, word, 1) ? Accept : Reject);
+                while (statesCurrentStack.Any())
+                {
+                    string stateCurrent = statesCurrentStack.Pop();
+                    string finalState = AddEpsilonTransitions(stateCurrent);
+
+                    if (finalState != null)
+                    {
+                        logs.Add($"Достигнуто конечное состояние {{{finalState}}}");
+                        return logs;
+                    };
+
+                    if (alphabet.Contains(letter))
+                    {
+                        if (transMatrix[stateCurrent][letter.ToString()].First().Equals(PassSymb))
+                        {
+                            continue;
+                        }
+
+                        foreach (string stateNext in transMatrix[stateCurrent][letter.ToString()])
+                        {
+                            statesNextSet.Add(stateNext);
+                            logsTemp.Enqueue($"Из состояния {{{stateCurrent}}} в состояние {{{stateNext}}} по слову '{letter}'");
+                        }
+                    }
+                }
+
+                if (!alphabet.Contains(letter))
+                {
+                    logs.Add($"Неверный символ '{letter}'");
+                    break;
+                }
+
+                logs.AddRange(logsTemp);
+                statesCurrentStack = new Stack<string>(statesNextSet);
             }
 
+            while (statesCurrentStack.Any())
+            {
+                string stateCurrent = statesCurrentStack.Pop();
+                string finalState = AddEpsilonTransitions(stateCurrent);
+
+                if (finalState != null)
+                {
+                    logs.Add($"Достигнуто конечное состояние {{{finalState}}}");
+                    return logs;
+                };
+            }
+
+            logs.Add("Конечное состояние НЕ достигнуто");
             return logs;
         }
 
