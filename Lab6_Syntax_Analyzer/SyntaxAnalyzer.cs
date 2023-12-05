@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +12,7 @@ namespace Lab6_Syntax_Analyzer
 {
     public static class SyntaxAnalyzer
     {
-        private static List<Lexeme> _lexemes;
+        private static ReadOnlyCollection<Lexeme> _lexemes;
         private static int currentPos;
         private const string FOR = "for";
         private const string TO = "to";
@@ -19,7 +21,7 @@ namespace Lab6_Syntax_Analyzer
 
         public static string Parse(List<Lexeme> lexemes)
         {
-            _lexemes = lexemes;
+            _lexemes = new(lexemes);
             currentPos = 0;
 
             try
@@ -37,7 +39,7 @@ namespace Lab6_Syntax_Analyzer
         {
             if (currentPos == _lexemes.Count)
             {
-                ThrowParseException("Отсутствует следующея необходимая лексема", _lexemes[currentPos]);
+                ThrowParseException("Отсутствует следующея необходимая лексема", _lexemes[currentPos - 1]);
             }
 
             return _lexemes[currentPos++];
@@ -47,7 +49,7 @@ namespace Lab6_Syntax_Analyzer
         {
             if (currentPos == _lexemes.Count)
             {
-                ThrowParseException("Отсутствует следующея необходимая лексема", _lexemes[currentPos]);
+                ThrowParseException("Отсутствует следующея необходимая лексема", _lexemes[currentPos - 1]);
             }
 
             return _lexemes[currentPos];
