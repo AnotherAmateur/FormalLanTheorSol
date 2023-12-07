@@ -1,6 +1,5 @@
 ﻿using Lab5_Lexical_Analyzer.Enums;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Lab5_Lexical_Analyzer
 {
@@ -10,11 +9,17 @@ namespace Lab5_Lexical_Analyzer
         {
             States curState = States.Start;
             States prevState;
-            bool isLexEnd;
-            int textPos = 0;
+
             var lexemes = new List<Lexeme>();
             var lexemeCur = new StringBuilder();
             var lexemeNext = new StringBuilder();
+
+            bool isLexEnd;
+
+            int textPos = 0;
+            int charOnLinePos = 0;
+            int linePos = 0;
+            int lexemePos = 0;
 
             while (curState != States.Final && curState != States.Error)
             {
@@ -40,6 +45,13 @@ namespace Lab5_Lexical_Analyzer
 
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 break;
                             }
                             else if (char.IsDigit(symbol))
@@ -84,6 +96,13 @@ namespace Lab5_Lexical_Analyzer
                         {
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 curState = States.Start;
                                 break;
                             }
@@ -129,6 +148,13 @@ namespace Lab5_Lexical_Analyzer
                         {
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 curState = States.Start;
                             }
                             else if (char.IsDigit(symbol))
@@ -174,6 +200,13 @@ namespace Lab5_Lexical_Analyzer
                         {
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 curState = States.Start;
                             }
                             else if (char.IsDigit(symbol))
@@ -208,6 +241,13 @@ namespace Lab5_Lexical_Analyzer
                         {
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 curState = States.Start;
                             }
                             else if (symbol == ';')
@@ -247,6 +287,13 @@ namespace Lab5_Lexical_Analyzer
                         {
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 curState = States.Start;
                             }
                             else if (char.IsLetter(symbol))
@@ -294,6 +341,13 @@ namespace Lab5_Lexical_Analyzer
                         {
                             if (char.IsWhiteSpace(symbol))
                             {
+                                if (symbol == '\n')
+                                {
+                                    lexemePos = 0;
+                                    charOnLinePos = 0;
+                                    ++linePos;
+                                }
+
                                 curState = States.Start;
                                 break;
                             }
@@ -338,18 +392,19 @@ namespace Lab5_Lexical_Analyzer
 
                 if (isLexEnd)
                 {
-                    AddLexem(prevState, lexemeCur.ToString().Trim(), lexemes);
+                    AddLexem(prevState, lexemeCur.ToString().Trim(), lexemes, linePos, lexemePos++, charOnLinePos);
                     lexemeCur = lexemeNext;
                     lexemeNext = new();
                 }
 
                 textPos++;
+                charOnLinePos++;
             }
 
             return (curState == States.Final, lexemes);
         }
 
-        private static void AddLexem(States state, string value, List<Lexeme> lexems)
+        private static void AddLexem(States state, string value, List<Lexeme> lexems, int linePos, int lexemePos, int charOnLinePos)
         {
             var lexType = LexTypes.Const;
             var lexCat = Categories.Const;
@@ -401,7 +456,8 @@ namespace Lab5_Lexical_Analyzer
                     break;
             }
 
-            lexems.Add(new Lexeme(lexType, lexCat, value));
+            int charOnLineStart = charOnLinePos - value.Length;
+            lexems.Add(new Lexeme(lexType, lexCat, value, linePos, lexemePos, charOnLineStart));
         }
     }
 }

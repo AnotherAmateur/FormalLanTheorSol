@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Lab5_Lexical_Analyzer;
+﻿using Lab5_Lexical_Analyzer;
 using Lab5_Lexical_Analyzer.Enums;
+using System.Collections.ObjectModel;
 
 namespace Lab6_Syntax_Analyzer
 {
@@ -55,6 +49,11 @@ namespace Lab6_Syntax_Analyzer
             return _lexemes[currentPos];
         }
 
+        private static bool HasNextLexeme()
+        {
+            return currentPos + 1 < _lexemes.Count;
+        }
+
         private static void ParseForLoop()
         {
             CheckExpectation(FOR, Categories.Keyword);
@@ -68,6 +67,11 @@ namespace Lab6_Syntax_Analyzer
 
             ParseOperators();
             CheckExpectation(NEXT, Categories.Keyword);
+
+            if (_lexemes.Count > currentPos)
+            {
+                ThrowParseException("Лексема за пределами цикла", PeekLexeme());
+            }
         }
 
         private static void ParseArithmeticExpression()
@@ -76,7 +80,7 @@ namespace Lab6_Syntax_Analyzer
 
             Lexeme nextLexeme = PeekLexeme();
 
-            if (nextLexeme.LexType.Equals(LexTypes.Arithmetic))
+            if (IsArithmeticOperation(nextLexeme.Value))
             {
                 GetLexeme();
                 ParseArithmeticExpression();
@@ -93,7 +97,7 @@ namespace Lab6_Syntax_Analyzer
             }
         }
 
-        private static void ParseIdentifier()
+        private static void ParseIdentifier() 
         {
             Lexeme lexeme = GetLexeme();
 
@@ -113,6 +117,18 @@ namespace Lab6_Syntax_Analyzer
             }
         }
 
+        private static void ParseLogicalExpression()
+        {
+            ParseOperand();
+
+            Lexeme nextLexeme = PeekLexeme();
+            if (IsComparisonOperator(nextLexeme.Value))
+            {
+                GetLexeme();
+                ParseOperand();
+            }
+        }
+
         private static void CheckExpectation(string expectedKeyword, Categories category)
         {
             Lexeme lexeme = GetLexeme();
@@ -123,9 +139,19 @@ namespace Lab6_Syntax_Analyzer
             }
         }
 
+        private static bool IsComparisonOperator(string value)
+        {
+            return value == "<" || value == ">" || value == "<=" || value == ">=" || value == "==" || value == "<>";
+        }
+
+        private static bool IsArithmeticOperation(string value)
+        {
+            return value == "+" || value == "-";
+        }
+
         private static void ThrowParseException(string message, Lexeme lexeme)
         {
-            throw new Exception($"Позиция: {currentPos}. {message} Найдено: {lexeme.LexType}," +
+            throw new Exception($"Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPos}]. {message} Найдено: {lexeme.LexType}," +
                 $" Категория: {lexeme.LexCat}, Значение: {lexeme.Value}");
         }
     }
