@@ -6,14 +6,14 @@ namespace Lab4_KNA_eps
 {
     public class Automat
     {
-        const string PassSymb = "-";
-        const string EpsSymb = "Eps";
+        private const string PassSymb = "-";
+        private const string EpsSymb = "Eps";
 
-        string? initState;
-        List<string> finalStates;
-        List<char> alphabet;
-        Dictionary<string, Dictionary<string, List<string>>> transMatrix;
-
+        private string? initState;
+        private List<string> finalStates;
+        private List<char> alphabet;
+        private Dictionary<string, Dictionary<string, List<string>>> transMatrix;
+        public List<string> Logs { get; private set; }
 
         public Automat(string path)
         {
@@ -33,96 +33,94 @@ namespace Lab4_KNA_eps
             }
         }
 
-        public List<string> ExecuteNFAWithEpsilonTransitions(string word)
+        public void ExecuteNFAWithEpsilonTransitions(string word)
         {
-            var logs = new List<string>();
+            Logs = new();
             var statesCurrentStack = new Stack<string>();
             statesCurrentStack.Push(initState);
+            string finalState = null;
 
-            string AddEpsilonTransitions(string state)
+            void AddEpsilonTransitions(string state)
             {
                 if (finalStates.Contains(state))
                 {
-                    return state;
+                    finalState = state;
                 }
 
                 if (!transMatrix[state][EpsSymb].First().Equals(PassSymb))
                 {
                     foreach (var nextState in transMatrix[state][EpsSymb])
                     {
-                        logs.Add($"Эпсилон-переход из состояния {{{state}}} в состояние {{{nextState}}}");
+                        Logs.Add($"Эпсилон-переход из состояния {{{state}}} в состояние {{{nextState}}}");
 
                         if (!statesCurrentStack.Contains(nextState))
                         {
                             statesCurrentStack.Push(nextState);
-                            string finalState = AddEpsilonTransitions(nextState);
-
-                            if (finalState != null)
-                            {
-                                return finalState;
-                            }
+                            AddEpsilonTransitions(nextState);
                         }
                     }
                 }
-
-                return null;
             }
 
-            var statesNextSet = new HashSet<string>();
-            var logsTemp = new Queue<string>();
-
+            int position = -1;
             foreach (char letter in word)
             {
+                ++position;
+                var logsTemp = new Queue<string>();
+                var statesNextSet = new HashSet<string>();
+
+                ValidateLetter(letter);
+
+                foreach (var state in new Stack<string>(statesCurrentStack))
+                {
+                    AddEpsilonTransitions(state);
+                }
+
                 while (statesCurrentStack.Any())
                 {
                     string stateCurrent = statesCurrentStack.Pop();
-                    string finalState = AddEpsilonTransitions(stateCurrent);
 
-                    if (finalState != null)
+                    if (transMatrix[stateCurrent][letter.ToString()].First().Equals(PassSymb))
                     {
-                        logs.Add($"Достигнуто конечное состояние {{{finalState}}}");
-                        return logs;
-                    };
+                        continue;
+                    }
 
-                    if (alphabet.Contains(letter))
+                    foreach (string stateNext in transMatrix[stateCurrent][letter.ToString()])
                     {
-                        if (transMatrix[stateCurrent][letter.ToString()].First().Equals(PassSymb))
-                        {
-                            continue;
-                        }
-
-                        foreach (string stateNext in transMatrix[stateCurrent][letter.ToString()])
-                        {
-                            statesNextSet.Add(stateNext);
-                            logsTemp.Enqueue($"Из состояния {{{stateCurrent}}} в состояние {{{stateNext}}} по слову '{letter}'");
-                        }
+                        statesNextSet.Add(stateNext);
+                        logsTemp.Enqueue($"Из состояния {{{stateCurrent}}} в состояние {{{stateNext}}} по слову '{letter}'");
                     }
                 }
 
-                if (!alphabet.Contains(letter))
+                if (!logsTemp.Any())
                 {
-                    logs.Add($"Неверный символ '{letter}'");
-                    break;
+                    Logs.Add($"Невозможно совершить переход по текущему символу: {letter}, позиция в слове: {position}");
+                    return;
                 }
 
-                logs.AddRange(logsTemp);
+                Logs.AddRange(logsTemp);
                 statesCurrentStack = new Stack<string>(statesNextSet);
             }
 
-            while (statesCurrentStack.Any())
+            foreach (var state in new Stack<string>(statesCurrentStack))
             {
-                string stateCurrent = statesCurrentStack.Pop();
-                string finalState = AddEpsilonTransitions(stateCurrent);
-
-                if (finalState != null)
-                {
-                    logs.Add($"Достигнуто конечное состояние {{{finalState}}}");
-                    return logs;
-                };
+                AddEpsilonTransitions(state);
             }
 
-            logs.Add("Конечное состояние НЕ достигнуто");
-            return logs;
+            string result = finalState is null ? "СЛОВО НЕ ПРИНЯТО" : "СЛОВО ПРИНЯТО";
+            Logs.Add(result);
+
+            return;
+        }
+
+        private void ValidateLetter(char letter)
+        {
+            if (!alphabet.Contains(letter))
+            {
+                Logs.Add($"Неверный символ '{letter}'");
+                Logs.Add("СЛОВО НЕ ПРИНЯТО");
+                throw new Exception();
+            }
         }
 
         public void PrintConfigFile()

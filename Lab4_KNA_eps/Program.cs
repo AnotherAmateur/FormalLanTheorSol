@@ -31,10 +31,16 @@ namespace Lab4_KNA_eps
                             Console.Write("Word: _\b");
                             string? word = Console.ReadLine();
 
-                            List<string> resultLogs = automaton.ExecuteNFAWithEpsilonTransitions(word ?? "");
+                            try
+                            {
+                                automaton.ExecuteNFAWithEpsilonTransitions(word ?? "");
+                            }
+                            catch (Exception)
+                            {
+                            }
 
                             Console.WriteLine("------------------------------");
-                            foreach (var record in resultLogs)
+                            foreach (var record in automaton.Logs)
                             {
                                 Console.WriteLine(record);
                             }
