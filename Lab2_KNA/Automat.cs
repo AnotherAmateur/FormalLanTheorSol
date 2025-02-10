@@ -33,21 +33,21 @@ namespace FormalLanTheor
         public List<string> Exec(string word)
         {
             List<string> logs = new();
-            if (ExecParallel(word, initState, logs, 1))
+            if (ExecParallelRec(word, initState, logs, 1))
             {
                 logs.Sort();
-                logs.Add("Accepted");
+                logs.Add("ACCEPTED");
             }
             else
             {
                 logs.Sort();
-                logs.Add("Rejected");
+                logs.Add("REJECTED");
             }
 
             return logs;
         }
 
-        public bool ExecParallel(string word, string state, List<string> logs, int step)
+        private bool ExecParallelRec(string word, string state, List<string> logs, int step)
         {
             if (word.Length == 0)
             {
@@ -59,21 +59,22 @@ namespace FormalLanTheor
 
             if (!transMatrix.ContainsKey(state))
             {
+                logs.Add($"The state \"{state}\" doesn`t exists.");
                 return false;
             }
 
             if (!transMatrix[state].ContainsKey(symbol))
             {
+                logs.Add($"The given symbol \"{symbol}\" is out of alphabet.");
                 return false;
             }
 
             var nextStates = transMatrix[state][symbol];
-
             bool result = false;
 
             Parallel.ForEach(nextStates, nextState =>
             {
-                if (ExecParallel(remainingInput, nextState, logs, step + 1))
+                if (ExecParallelRec(remainingInput, nextState, logs, step + 1))
                 {
                     result = true;
                 }

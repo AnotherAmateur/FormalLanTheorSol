@@ -43,7 +43,7 @@ namespace FormalLanTheor
             {
                 if (alphabet.Contains(letter) is false)
                 {
-                    logs.Add($"The given sumbol \"{letter}\" is out of alphabet.");
+                    logs.Add($"The given symbol \"{letter}\" is out of alphabet.");
                     logs.Add("The given word is rejected.");
                     return logs;
                 }

@@ -9,7 +9,7 @@ namespace Lab4_KNA_eps
         private const string PassSymb = "-";
         private const string EpsSymb = "Eps";
 
-        private string? initState;
+        private string initState;
         private List<string> finalStates;
         private List<char> alphabet;
         private Dictionary<string, Dictionary<string, List<string>>> transMatrix;
@@ -17,7 +17,6 @@ namespace Lab4_KNA_eps
 
         public Automat(string path)
         {
-            initState = null;
             finalStates = new();
             alphabet = new();
             transMatrix = new();
@@ -38,15 +37,10 @@ namespace Lab4_KNA_eps
             Logs = new();
             var statesCurrentStack = new Stack<string>();
             statesCurrentStack.Push(initState);
-            string finalState = null;
 
-            void AddEpsilonTransitions(string state)
+            void AddEpsClosure(string state)
             {
-                if (finalStates.Contains(state))
-                {
-                    finalState = state;
-                }
-
+                // если есть эпс-переходы
                 if (!transMatrix[state][EpsSymb].First().Equals(PassSymb))
                 {
                     foreach (var nextState in transMatrix[state][EpsSymb])
@@ -56,13 +50,13 @@ namespace Lab4_KNA_eps
                         if (!statesCurrentStack.Contains(nextState))
                         {
                             statesCurrentStack.Push(nextState);
-                            AddEpsilonTransitions(nextState);
+                            AddEpsClosure(nextState);
                         }
                     }
                 }
             }
 
-            int position = -1;
+            int position = 0;
             foreach (char letter in word)
             {
                 ++position;
@@ -73,7 +67,7 @@ namespace Lab4_KNA_eps
 
                 foreach (var state in new Stack<string>(statesCurrentStack))
                 {
-                    AddEpsilonTransitions(state);
+                    AddEpsClosure(state);
                 }
 
                 while (statesCurrentStack.Any())
@@ -82,36 +76,32 @@ namespace Lab4_KNA_eps
 
                     if (transMatrix[stateCurrent][letter.ToString()].First().Equals(PassSymb))
                     {
-                        Logs.Add($"Невозможно совершить переход по текущему символу: {letter}, позиция в слове: {position}");
-                        return;
+                        continue;
                     }
 
                     foreach (string stateNext in transMatrix[stateCurrent][letter.ToString()])
                     {
                         statesNextSet.Add(stateNext);
-                        logsTemp.Enqueue($"Из состояния {{{stateCurrent}}} в состояние {{{stateNext}}} по слову '{letter}'");
+                        Logs.Add($"Из состояния {{{stateCurrent}}} в состояние {{{stateNext}}} по символу '{letter}'");
                     }
                 }
 
-                if (!logsTemp.Any())
+                if (!statesNextSet.Any())
                 {
                     Logs.Add($"Невозможно совершить переход по текущему символу: {letter}, позиция в слове: {position}");
                     return;
                 }
 
-                Logs.AddRange(logsTemp);
                 statesCurrentStack = new Stack<string>(statesNextSet);
             }
 
             foreach (var state in new Stack<string>(statesCurrentStack))
             {
-                AddEpsilonTransitions(state);
+                AddEpsClosure(state);
             }
 
-            string result = finalState is null ? "СЛОВО НЕ ПРИНЯТО" : "СЛОВО ПРИНЯТО";
+            string result = finalStates.Intersect(statesCurrentStack).Any() ? "СЛОВО ПРИНЯТО" : "СЛОВО НЕ ПРИНЯТО";
             Logs.Add(result);
-
-            return;
         }
 
         private void ValidateLetter(char letter)
@@ -221,10 +211,11 @@ namespace Lab4_KNA_eps
                 }
 
                 // установка начального состояния
-                initState = configFyle.ReadLine()?.Split(new char[] { '#', ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                if (initState is null || transMatrix.ContainsKey(initState) is false)
+                initState = configFyle.ReadLine()?.Split(new char[] { '#', ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()
+                    ?? throw new ArgumentNullException();
+                if (transMatrix.ContainsKey(initState) is false)
                 {
-                    throw new NotImplementedException();
+                    throw new FileLoadException();
                 }
 
                 // установка конечных состояний
