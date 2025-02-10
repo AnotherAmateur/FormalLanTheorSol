@@ -36,50 +36,38 @@ namespace FormalLanTheor
         {
             List<string> logs = new();
 
-            foreach (char letter in word)
-            {
-                if (alphabet.Contains(letter) is false)
-                {
-                    logs.Add("The given word is out of alphabet");
-                    return logs;
-                }
-            }
-           
             string curState = initState;
             int i = word.Length;
 
             foreach (char letter in word)
             {
-                --i;
+                if (alphabet.Contains(letter) is false)
+                {
+                    logs.Add($"The given sumbol \"{letter}\" is out of alphabet.");
+                    logs.Add("The given word is rejected.");
+                    return logs;
+                }
 
                 string nextState = transMatrix[curState][letter];
+
+                if (nextState.Equals(PassSymb))
+                {
+                    logs.Add("Can`t proceed the transition.");
+                    logs.Add("The given word is rejected.");
+                    return logs;
+                }
+
                 logs.Add($"{letter}: {curState} -> {nextState}");
-
-                if (finalStates.Contains(nextState))
-                {
-                    logs.Add("The final state was reached");
-                    break;
-                }
-
-                if (nextState.Equals(PassSymb) || i == 0)
-                {
-                    logs.Add("The final state wasn`t reached");
-                    break;
-                }
-
                 curState = nextState;
             }
 
-            if (word.Length == 0)
+            if (finalStates.Contains(curState))
             {
-                if (finalStates.Contains(curState))
-                {
-                    logs.Add("The final state was reached");
-                }
-                else
-                {
-                    logs.Add("The final state wasn`t reached");
-                }              
+                logs.Add("The given word is accepted");
+            }
+            else
+            {
+                logs.Add("The given word is rejected");
             }
 
             return logs;

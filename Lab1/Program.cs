@@ -39,8 +39,6 @@
                             Console.WriteLine("------------------------------");
                         }
                         break;
-                    default:
-                        return;
                 }
             }
         }
