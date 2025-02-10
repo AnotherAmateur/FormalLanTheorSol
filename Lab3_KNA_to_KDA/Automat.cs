@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.Metrics;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -7,8 +8,8 @@ namespace FormalLanTheor
     public class Automat
     {
         const string PassSymb = "-";
-        const string Accept = "The final state was reached";
-        const string Reject = "The final state wasn`t reached";
+        const string Accept = "ACCEPTED";
+        const string Reject = "REJECTED";
 
         string initState;
         List<string> finalStates;
@@ -32,76 +33,60 @@ namespace FormalLanTheor
             }
         }
 
-        public List<string> Exec(string word)
+        public List<string> ExecNew(string word)
         {
             List<string> logs = new();
-            if (word.Length == 0 && finalStates.Contains(initState))
+            List<string> stateCur = new();
+            stateCur.Add(initState);
+
+            bool hasError = false;
+            foreach (char symbol in word)
             {
-                logs.Add(Accept);
-            }
-            else
-            {
-                logs.Add(Exec(word, initState, logs) ? Accept : Reject);
+                if (alphabet.Contains(symbol) is false)
+                {
+                    logs.Add($"The given symbol \"{symbol}\" is out of alphabet.");
+                    hasError = true;
+                    break;
+                }
+
+                List<string> nextStatesOnSymb = new();
+                foreach (string state in stateCur)
+                {
+                    nextStatesOnSymb.AddRange(transMatrix[state][symbol].Except(new string[] { PassSymb }));
+                }
+
+                if (nextStatesOnSymb.Count == 0)
+                {
+                    logs.Add($"Can`t proceed transition.");
+                    hasError = true;
+                    break;
+                }
+
+                string stateCurStr = GetStrForState(stateCur);
+                string stateNextStr = GetStrForState(nextStatesOnSymb);
+
+                // добавление в матрицу нового состояния и перехода
+                if (transMatrix[stateCurStr].ContainsKey(symbol) is false)
+                {
+                    transMatrix[stateCurStr].Add(symbol, nextStatesOnSymb);
+                }
+                if (transMatrix.ContainsKey(stateNextStr) is false)
+                {
+                    transMatrix.Add(stateNextStr, new());
+                }
+
+                logs.Add($"From state {{{stateCurStr}}} to {{{stateNextStr}}} on symbol \'{symbol}\'");
+                stateCur = nextStatesOnSymb;
             }
 
+            string result = (hasError is false && stateCur.Intersect(finalStates).Any()) ? Accept : Reject;
+            logs.Add(result);
             return logs;
         }
 
-        public bool Exec(string word, string curState, List<string> logs)
+        private string GetStrForState(IEnumerable<string> list)
         {
-            if (word.Length != 0)
-            {
-                char curLetter = word[0];
-                string remainingInput = word.Substring(1);
-                if (curState == PassSymb || !alphabet.Contains(curLetter))
-                    return false;
-
-                string[] stateSplitted = curState.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-                // парсинг всех переходов для нового состояния
-                if (transMatrix.ContainsKey(curState) is false)
-                {
-                    foreach (var state in stateSplitted)
-                    {
-                        if (finalStates.Contains(state))
-                        {
-                            transMatrix.Add($"*{curState}", new());
-                            return true;
-                        }
-                    }
-
-                    transMatrix.Add(curState, new());
-
-                    foreach (var letter in alphabet)
-                    {
-                        List<string> nextStatesOnLetter = new();
-
-                        foreach (var state in stateSplitted)
-                        {
-                            nextStatesOnLetter.AddRange(transMatrix[state][letter].Except(new string[] { "-" }));
-                        }
-
-                        if (nextStatesOnLetter.Count == 0)
-                            nextStatesOnLetter.Add(PassSymb);
-
-                        transMatrix[curState][letter] = nextStatesOnLetter;
-                    }
-                }
-
-                string nextStateStr = string.Join(',', transMatrix[curState][curLetter].Except(new string[] { "-" }));
-
-                if (nextStateStr != string.Empty)
-                {
-                    logs.Add($"From state {{{curState}}} to {{{nextStateStr}}} on letter {curLetter}");
-                    return Exec(remainingInput, nextStateStr, logs);
-                }
-                else
-                {
-                    logs.Add($"From state {{{curState}}} to {{-}} on letter {curLetter}");
-                }
-            }
-
-            return false;
+            return $"{string.Join(',', list)}";
         }
 
         public void PrintConfigFile()
@@ -129,7 +114,7 @@ namespace FormalLanTheor
                     pred += "*";
                 }
 
-                Console.Write($"{(pred + line.Key).PadLeft(Margin)} | ");
+                Console.Write($"{(pred + $"{{{line.Key}}}").PadLeft(Margin)} | ");
 
                 foreach (var item in line.Value.Values.Select(x => string.Join(',', x)))
                 {

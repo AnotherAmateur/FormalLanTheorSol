@@ -31,7 +31,7 @@ namespace FormalLanTheor
                             Console.Write("Word: _\b");
                             string? word = Console.ReadLine();                          
 
-                            List<string> resultLogs = automaton.Exec(word ?? "");
+                            List<string> resultLogs = automaton.ExecNew(word ?? "");
 
                             Console.WriteLine("------------------------------");
                             foreach (var record in resultLogs)
