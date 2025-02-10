@@ -82,7 +82,8 @@ namespace Lab4_KNA_eps
 
                     if (transMatrix[stateCurrent][letter.ToString()].First().Equals(PassSymb))
                     {
-                        continue;
+                        Logs.Add($"Невозможно совершить переход по текущему символу: {letter}, позиция в слове: {position}");
+                        return;
                     }
 
                     foreach (string stateNext in transMatrix[stateCurrent][letter.ToString()])
