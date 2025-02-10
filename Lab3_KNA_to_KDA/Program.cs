@@ -6,7 +6,7 @@ namespace FormalLanTheor
     {
         public static void Main()
         {
-            string configFilePath = "D:\\Uni\\4course_1sem\\FormalLanTheorSol\\Lab3_KNA_to_KDA\\automaton.me";
+            string configFilePath = "D:\\Uni\\4course_1sem\\FormalLanTheorSol\\Projects\\FormalLanTheorSol\\Lab3_KNA_to_KDA\\automaton.me";
 
             var automaton = new Automat(configFilePath);
 
@@ -54,5 +54,4 @@ namespace FormalLanTheor
             Console.WriteLine("Press 2 to enter a word");
         }
     }
-
 }

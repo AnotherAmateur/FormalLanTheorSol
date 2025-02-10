@@ -4,7 +4,7 @@
     {
         public static void Main()
         {
-            string configFilePath = "D:\\Uni\\4course_1sem\\FormalLanTheorSol\\Lab1\\automaton.me";
+            string configFilePath = "D:\\Uni\\4course_1sem\\FormalLanTheorSol\\Projects\\FormalLanTheorSol\\Lab1\\automaton.me";
 
             var automaton = new Automat(configFilePath);
 
