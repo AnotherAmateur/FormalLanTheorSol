@@ -36,18 +36,16 @@ namespace FormalLanTheor
             if (ExecParallel(word, initState, logs, 1))
             {
                 logs.Sort();
-                logs.Add("Конечное состояние достигнуто");
+                logs.Add("Accepted");
             }
             else
             {
                 logs.Sort();
-                logs.Add("Конечное состояние НЕ достигнуто");
+                logs.Add("Rejected");
             }
-
 
             return logs;
         }
-
 
         public bool ExecParallel(string word, string state, List<string> logs, int step)
         {
