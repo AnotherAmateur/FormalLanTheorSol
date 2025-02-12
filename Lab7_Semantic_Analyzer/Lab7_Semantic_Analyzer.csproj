@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="temp.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Lab5_Lexical_Analyzer\Lab5_Lexical_Analyzer.csproj" />
   </ItemGroup>
 
