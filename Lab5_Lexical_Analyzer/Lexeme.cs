@@ -10,7 +10,7 @@ namespace Lab5_Lexical_Analyzer
 
         public int LinePos { get; private set; }
         public int LexemePos { get; private set; }
-        public int CharPos { get; private set; }
+        public int CharPosAbsolute { get; private set; }
 
         public Lexeme(LexTypes lexType, Categories lexCat, string value, int linePos, int lexemePos, int charPos)
         {
@@ -19,7 +19,7 @@ namespace Lab5_Lexical_Analyzer
             Value = value ?? throw new ArgumentNullException(nameof(value));
             LinePos = linePos;
             LexemePos = lexemePos;
-            CharPos = charPos;
+            CharPosAbsolute = charPos;
         }
     }
 }

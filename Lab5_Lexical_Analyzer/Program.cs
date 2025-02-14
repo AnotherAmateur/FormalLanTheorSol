@@ -11,7 +11,7 @@
 
             (bool, List<Lexeme>) resLexemes = LexAnalyzer.Analyze(code);
 
-            Console.WriteLine("Index | Category    | Type        | Value    | Line/Lexeme/Char");
+            Console.WriteLine("Index | Category    | Type        | Value    | Line/Lexeme/CharPosAbsolute");
             Console.WriteLine(new string('-', 67));
 
             for (int i = 0; i < resLexemes.Item2.Count; i++)
@@ -20,7 +20,7 @@
                                   $"{resLexemes.Item2[i].LexCat,-11} | " +
                                   $"{resLexemes.Item2[i].LexType,-11} | " +
                                   $"{resLexemes.Item2[i].Value,-8} | " +
-                                  $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPos}]");
+                                  $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPosAbsolute}]");
             }
 
             Console.WriteLine();
@@ -31,8 +31,8 @@
                 Console.WriteLine($" Value: {LexAnalyzer.ErrorInfo.Value,-8} | " +
                                    $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
-                                   $"{LexAnalyzer.ErrorInfo.CharPos}]");
-                return;
+                                   $"{LexAnalyzer.ErrorInfo.CharPosAbsolute}]");
+                Environment.Exit(-1);
             }
 
             Console.WriteLine("SUCCESS");
@@ -40,5 +40,3 @@
         }
     }
 }
-
-// DONE позиция ошибки
