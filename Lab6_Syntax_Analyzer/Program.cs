@@ -35,7 +35,7 @@ namespace Lab6_Syntax_Analyzer
                                    $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.CharPos}]");
-                return;
+                Environment.Exit(-1);
             }
 
             Console.WriteLine("LexAnalyzer: SUCCESS");
