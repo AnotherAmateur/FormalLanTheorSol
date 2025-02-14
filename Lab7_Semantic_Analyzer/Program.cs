@@ -1,16 +1,21 @@
 ﻿using Lab5_Lexical_Analyzer;
-using System.Linq;
 
-namespace Lab7_Syntax_Analyzer
+namespace Lab7_Syntax_Analyzer_Poliz
 {
     public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            string code = @"for i = 1 + 2 to i + 23
+            string code = @"for j = 1 + 2 to i + 4
                                 a = a - 1 + 5
                                 b = 56
                             next";
+
+            //code = @"for j = 42 to 15+3
+            //                    a = 25
+            //                    b = 56 - a
+            //                    c = b - a
+            //                next";
 
             (bool, List<Lexeme>) resLexemes = LexAnalyzer.Analyze(code);
 
@@ -42,16 +47,16 @@ namespace Lab7_Syntax_Analyzer
             Console.WriteLine("LexAnalyzer: SUCCESS");
             Console.WriteLine();
 
-            string result = SyntaxSemanticAnalyzer.Parse(resLexemes.Item2);
+            string result = SyntaxAnalyzerPoliz.Parse(resLexemes.Item2);
             Console.WriteLine(result);
 
             Console.WriteLine();
-            foreach (var (x, i) in SyntaxSemanticAnalyzer.Poliz.Select((x, i) => (x, i)))
+            foreach (var (x, i) in SyntaxAnalyzerPoliz.Poliz.Select((x, i) => (x, i)))
             {
                 Console.Write($"{i}:");
                 Console.ForegroundColor = ConsoleColor.DarkRed;
                 Console.Write(x.Value);
-                Console.ResetColor(); 
+                Console.ResetColor();
                 Console.Write(" ");
             }
             Console.WriteLine();

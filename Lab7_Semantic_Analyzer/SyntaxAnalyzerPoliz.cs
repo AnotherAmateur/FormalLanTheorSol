@@ -1,11 +1,11 @@
 ﻿using Lab5_Lexical_Analyzer;
 using Lab5_Lexical_Analyzer.Enums;
-using Lab7_Semantic_Analyzer.Enums;
+using Lab7_Syntax_Analyzer_Poliz.Enums;
 using System.Collections.ObjectModel;
 
-namespace Lab7_Syntax_Analyzer
+namespace Lab7_Syntax_Analyzer_Poliz
 {
-    public static class SyntaxSemanticAnalyzer
+    public static class SyntaxAnalyzerPoliz
     {
         private static ReadOnlyCollection<Lexeme> _lexemes;
         private static List<PostfixEntry> _poliz;
@@ -73,21 +73,23 @@ namespace Lab7_Syntax_Analyzer
         private static void ParseForLoop()
         {
             CheckExpectation(FOR, Categories.Keyword);
-            ParseIdentifier();
+            Lexeme identifierFirst = ParseIdentifier();
 
             CheckExpectation(ASSIGNMENT, Categories.SpecSymb);
             ParseArithmeticExpression();
             WritePoliz(Cmd.SET);
-
+            
             CheckExpectation(TO, Categories.Keyword);
+            int indexForJmp = WritePoliz(identifierFirst.Value, EntryType.Var);
+
             ParseArithmeticExpression();
-            int conditionIndex = WritePoliz(Cmd.CMPLE);
+            WritePoliz(Cmd.CMPLE);
             int jzIndex = WritePoliz(-1, EntryType.CmdPtr);
             WritePoliz(Cmd.JZ);
 
             ParseOperators();
 
-            WritePoliz(conditionIndex, EntryType.CmdPtr);
+            WritePoliz(indexForJmp, EntryType.CmdPtr);
             WritePoliz(Cmd.JMP);
             WritePoliz(_poliz.Count, EntryType.CmdPtr, jzIndex);
 
@@ -125,7 +127,7 @@ namespace Lab7_Syntax_Analyzer
             WritePoliz(operand.Value, operand.LexCat == Categories.Identifier ? EntryType.Var : EntryType.Const);
         }
 
-        private static void ParseIdentifier()
+        private static Lexeme ParseIdentifier()
         {
             Lexeme lexeme = GetLexeme();
 
@@ -135,6 +137,8 @@ namespace Lab7_Syntax_Analyzer
             }
 
             WritePoliz(lexeme.Value, EntryType.Var);
+
+            return lexeme;
         }
 
         private static void ParseOperators()

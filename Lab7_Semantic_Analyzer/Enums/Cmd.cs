@@ -1,4 +1,4 @@
-﻿namespace Lab7_Semantic_Analyzer.Enums
+﻿namespace Lab7_Syntax_Analyzer_Poliz.Enums
 {
     public enum Cmd
     {
