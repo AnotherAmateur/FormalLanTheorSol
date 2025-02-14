@@ -49,11 +49,6 @@ namespace Lab6_Syntax_Analyzer
             return _lexemes[currentPos];
         }
 
-        private static bool HasNextLexeme()
-        {
-            return currentPos + 1 < _lexemes.Count;
-        }
-
         private static void ParseForLoop()
         {
             CheckExpectation(FOR, Categories.Keyword);

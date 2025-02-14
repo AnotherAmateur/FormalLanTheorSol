@@ -26,14 +26,23 @@ namespace Lab6_Syntax_Analyzer
                                   $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPos}]");
             }
 
-            Console.WriteLine(resLexemes.Item1 ? "Success" : "Fail");
             Console.WriteLine();
 
-            if (resLexemes.Item1)
+            if (resLexemes.Item1 is false)
             {
-                string result = SyntaxAnalyzer.Parse(resLexemes.Item2);
-                Console.WriteLine(result);
+                Console.WriteLine("FAIL INFO:");
+                Console.WriteLine($" Value: {LexAnalyzer.ErrorInfo.Value,-8} | " +
+                                   $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
+                                   $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
+                                   $"{LexAnalyzer.ErrorInfo.CharPos}]");
+                return;
             }
+
+            Console.WriteLine("LexAnalyzer: SUCCESS");
+            Console.WriteLine();
+
+            string result = SyntaxAnalyzer.Parse(resLexemes.Item2);
+            Console.WriteLine(result);
         }
     }
 }
