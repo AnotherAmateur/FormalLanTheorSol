@@ -32,6 +32,19 @@ namespace Lab8_PolizInterpreter
             return Convert.ToInt32(operandStr);
         }
 
+        private static void SetVar(object operandA, object operandB)
+        {
+            string varName = operandA.ToString();
+            if (_variables.ContainsKey(varName) is false)
+            {
+                _variables.Add(varName, GetValueOfOperand(operandB));
+            }
+            else
+            {
+                _variables[varName] = GetValueOfOperand(operandB);
+            }
+        }
+
         public static void Execute(List<PostfixEntry> poliz)
         {
             _variables = new();
@@ -75,12 +88,8 @@ namespace Lab8_PolizInterpreter
                 case Cmd.SET:
                     operandB = _stack.Pop();
                     operandA = _stack.Pop();
-
-                    string varName = operandA.ToString();
-                    if (_variables.ContainsKey(varName) is false)
-                        _variables.Add(varName, GetValueOfOperand(operandB));
-
-                    if (_loopVar is null) { _loopVar = varName; }
+                    SetVar(operandA, operandB);
+                    if (_loopVar is null) { _loopVar = operandA.ToString(); }
                     break;
                 case Cmd.ADD:
                     operandB = _stack.Pop();
