@@ -6,19 +6,12 @@ namespace Lab7_Syntax_Analyzer_Poliz
     {
         public static void Main(string[] args)
         {
-            string code = @"for j = 1 + 2 to i + 4
-                                a = a - 1 + 5
-                                b = 56
+            string code = @"for j = 42 to 42
+                                b = 56 - a
+                                c = b - a
                             next";
 
-            //code = @"for j = 42 to 15+3
-            //                    a = 25
-            //                    b = 56 - a
-            //                    c = b - a
-            //                next";
-
             (bool, List<Lexeme>) resLexemes = LexAnalyzer.Analyze(code);
-
 
             Console.WriteLine("Index | Category    | Type        | Value    | Line/Lexeme/Char");
             Console.WriteLine(new string('-', 67));
@@ -41,15 +34,23 @@ namespace Lab7_Syntax_Analyzer_Poliz
                                    $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.CharPos}]");
-                return;
+                Environment.Exit(-1);
             }
 
             Console.WriteLine("LexAnalyzer: SUCCESS");
             Console.WriteLine();
 
-            string result = SyntaxAnalyzerPoliz.Parse(resLexemes.Item2);
-            Console.WriteLine(result);
+            try
+            {
+                SyntaxAnalyzerPoliz.Parse(resLexemes.Item2);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Environment.Exit(-1);
+            }
 
+            Console.WriteLine("Синтаксический анализ завершен успешно.");
             Console.WriteLine();
             foreach (var (x, i) in SyntaxAnalyzerPoliz.Poliz.Select((x, i) => (x, i)))
             {

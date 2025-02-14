@@ -19,28 +19,21 @@ namespace Lab7_Syntax_Analyzer_Poliz
 
         public static List<PostfixEntry> Poliz { get => _poliz; }
 
-        public static string Parse(List<Lexeme> lexemes)
+        public static void Parse(List<Lexeme> lexemes)
         {
             _lexemes = new(lexemes);
             _poliz = new();
             _currentPos = 0;
-
-            try
-            {
-                ParseForLoop();
-                return "Синтаксический анализ завершен успешно.";
-            }
-            catch (Exception ex)
-            {
-                return $"Ошибка в синтаксическом анализе: {ex.Message}";
-            }
+            ParseForLoop();
         }
 
         private static Lexeme GetLexeme()
         {
             if (_currentPos == _lexemes.Count)
             {
-                ThrowParseException("Отсутствует следующея необходимая лексема", _lexemes[_currentPos - 1]);
+                var lastLex = _lexemes[_currentPos - 1];
+                (int, int, int) position = new(lastLex.LinePos, lastLex.LexemePos, lastLex.CharPos);
+                ThrowParseException("Отсутствует следующая лексема.", position);
             }
 
             return _lexemes[_currentPos++];
@@ -50,7 +43,9 @@ namespace Lab7_Syntax_Analyzer_Poliz
         {
             if (_currentPos == _lexemes.Count)
             {
-                ThrowParseException("Отсутствует следующея необходимая лексема", _lexemes[_currentPos - 1]);
+                var lastLex = _lexemes[_currentPos - 1];
+                (int, int, int) position = new(lastLex.LinePos, lastLex.LexemePos, lastLex.CharPos);
+                ThrowParseException("Отсутствует следующая лексема.", position);
             }
 
             return _lexemes[_currentPos];
@@ -78,7 +73,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
             CheckExpectation(ASSIGNMENT, Categories.SpecSymb);
             ParseArithmeticExpression();
             WritePoliz(Cmd.SET);
-            
+
             CheckExpectation(TO, Categories.Keyword);
             int indexForJmp = WritePoliz(identifierFirst.Value, EntryType.Var);
 
@@ -97,7 +92,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
 
             if (_lexemes.Count > _currentPos)
             {
-                ThrowParseException("Лексема за пределами цикла", PeekLexeme());
+                ThrowParseException("Лексема за пределами цикла FOR-TO-NEXT", PeekLexeme());
             }
         }
 
@@ -105,12 +100,22 @@ namespace Lab7_Syntax_Analyzer_Poliz
         {
             ParseOperand();
 
-            Lexeme nextLexeme = PeekLexeme();
-
-            if (IsArithmeticOperation(nextLexeme.Value))
+            // арифмитические вычисления слева направо
             {
-                GetLexeme();
-                ParseArithmeticExpression();
+                //Lexeme nextLexeme = PeekLexeme(); 
+                //if (IsArithmeticOperation(nextLexeme.Value))
+                //{
+                //    GetLexeme();
+                //    ParseArithmeticExpression();
+                //    WritePoliz(nextLexeme.Value == ADD ? Cmd.ADD : Cmd.SUB);
+                //}
+            }
+
+            // арифмитические вычисления справа налево
+            while (IsArithmeticOperation(PeekLexeme().Value))
+            {
+                Lexeme nextLexeme = GetLexeme();
+                ParseOperand();
                 WritePoliz(nextLexeme.Value == ADD ? Cmd.ADD : Cmd.SUB);
             }
         }
@@ -169,7 +174,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
         {
             Lexeme lexeme = GetLexeme();
 
-            if ((category.Equals(lexeme.LexCat) && lexeme.Value.Equals(expectedKeyword, StringComparison.OrdinalIgnoreCase)) is false)
+            if ((category.Equals(lexeme.LexCat) && lexeme.Value.Equals(expectedKeyword, StringComparison.Ordinal)) is false)
             {
                 ThrowParseException($"Ожидается ключевое слово '{expectedKeyword}'.", lexeme);
             }
@@ -187,8 +192,13 @@ namespace Lab7_Syntax_Analyzer_Poliz
 
         private static void ThrowParseException(string message, Lexeme lexeme)
         {
-            throw new Exception($"Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPos}]. {message} Найдено: {lexeme.LexType}," +
+            throw new Exception($"Ошибка в синтаксическом анализе: Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPos}]. {message} Найдено: {lexeme.LexType}," +
                 $" Категория: {lexeme.LexCat}, Значение: {lexeme.Value}");
+        }
+
+        private static void ThrowParseException(string message, (int, int, int) position)
+        {
+            throw new Exception($"Ошибка в синтаксическом анализе: Позиция: [{position.Item1}/{position.Item2}/{position.Item3}]. {message}");
         }
     }
 
