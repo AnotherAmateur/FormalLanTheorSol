@@ -15,41 +15,33 @@ namespace Lab4_KNAe_to_KNA
                 WelcomeMenu();
 
                 int choice;
-                if (int.TryParse(Console.ReadLine(), out choice) is false)
+                if (int.TryParse(Console.ReadLine(), out choice))
                 {
-                    Console.WriteLine("Bad input");
+                    switch (choice)
+                    {
+                        case 1:
+                            automaton.PrintTransMatrix();
+                            break;
+                        case 2:
+                            {
+                                Console.Write("Word: _\b");
+                                string? word = Console.ReadLine();
+
+                                automaton.Exec(word ?? "");
+
+                                Console.WriteLine("------------------------------");
+                                foreach (var record in automaton.Logs)
+                                {
+                                    Console.WriteLine(record);
+                                }
+                                Console.WriteLine("------------------------------");
+                            }
+                            break;
+                    }
                     continue;
                 }
 
-                switch (choice)
-                {
-                    case 1:
-                        automaton.PrintConfigFile();
-                        break;
-                    case 2:
-                        {
-                            Console.Write("Word: _\b");
-                            string? word = Console.ReadLine();
-
-                            try
-                            {
-                                automaton.Exec(word ?? "");
-                            }
-                            catch (Exception)
-                            {
-                            }
-
-                            Console.WriteLine("------------------------------");
-                            foreach (var record in automaton.Logs)
-                            {
-                                Console.WriteLine(record);
-                            }
-                            Console.WriteLine("------------------------------");
-                        }
-                        break;
-                    default:
-                        return;
-                }
+                Console.WriteLine("Bad input");
             }
         }
 

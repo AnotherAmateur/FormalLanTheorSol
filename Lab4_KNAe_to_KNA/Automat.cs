@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System.Text;
+﻿using System.Text;
 
 namespace Lab4_KNAe_to_KNA
 {
@@ -33,6 +32,7 @@ namespace Lab4_KNAe_to_KNA
                 Environment.Exit(-1);
             }
 
+            PrintConfigFile();
             ConvertToKNA();
         }
 
@@ -40,58 +40,51 @@ namespace Lab4_KNAe_to_KNA
         public void Exec(string word)
         {
             Logs = new();
-            ExecParallel(word, initState, 1);
-            Logs.Sort();
-            string msg = result && !forbiddenTrans ? "СЛОВО ПРИНЯТО" : "СЛОВО НЕ ПРИНЯТО";
-            Logs.Add(msg);
-
-            result = false;
-            forbiddenTrans = false;
+            if (ExecParallelRec(word, initState, 1))
+            {
+                Logs.Sort();
+                Logs.Add("ACCEPTED");
+            }
+            else
+            {
+                Logs.Sort();
+                Logs.Add("REJECTED");
+            }
         }
 
-        public void ExecParallel(string word, string state, int step)
+        public bool ExecParallelRec(string word, string state, int step)
         {
-            if (finalStates.Contains(state))
-            {
-                result = true;
-            }
-
             if (word.Length == 0)
             {
-                return;
+                return finalStates.Contains(state);
             }
 
-            var symbol = word[0].ToString();
+            string symbol = word[0].ToString();
             string remainingInput = word.Substring(1);
-
-            if (!transMatrix.ContainsKey(state))
-            {
-                forbiddenTrans = true;
-                return;
-            }
 
             if (!transMatrix[state].ContainsKey(symbol))
             {
-                forbiddenTrans = true;
-                return;
+                Logs.Add($"The given symbol \"{symbol}\" is out of alphabet.");
+                return false;
             }
 
-            var nextStates = transMatrix[state][symbol].Except(new List<string>() { PassSymb }).ToList();
-
-            if (nextStates.Count == 0)
-            {
-                forbiddenTrans = true;
-            }
+            var nextStates = transMatrix[state][symbol.ToString()];
+            bool result = false;
 
             Parallel.ForEach(nextStates, nextState =>
             {
-                ExecParallel(remainingInput, nextState, step + 1);
+                if (ExecParallelRec(remainingInput, nextState, step + 1))
+                {
+                    result = true;
+                }
 
                 lock (Logs)
                 {
-                    Logs.Add($"{(finalStates.Contains(nextState) ? "*" : "")}Шаг: {step}. Из состояния: {state} в состояние: {nextState} по символу: {symbol}");
+                    Logs.Add($"{(result ? "*" : "")}Step: {step}, State: {state}, Symbol: {symbol}, Next State: {nextState}");
                 }
             });
+
+            return result;
         }
 
         private void ConvertToKNA()
@@ -112,6 +105,7 @@ namespace Lab4_KNAe_to_KNA
                 }
             }
 
+            // удаление слотбца эпс-переходов из таблицы
             foreach (var state in transMatrix.Keys)
             {
                 transMatrix[state].Remove(EpsSymb);
@@ -120,15 +114,15 @@ namespace Lab4_KNAe_to_KNA
 
         private void AddNewTransitions(string fromState, string toState)
         {
-            foreach (var letter in alphabet)
+            foreach (var symbol in alphabet)
             {
-                var letterStr = letter.ToString();
-                var temp = transMatrix[fromState][letterStr].Except(transMatrix[toState][letterStr]).ToList();
-                transMatrix[toState][letterStr].AddRange(temp);
+                var symbolStr = symbol.ToString();
+                var newTransitions = transMatrix[fromState][symbolStr].Except(transMatrix[toState][symbolStr]).ToList();
+                transMatrix[toState][symbolStr].AddRange(newTransitions);
 
-                if (temp.Count() > 0)
+                if (newTransitions.Count() > 0)
                 {
-                    transMatrix[toState][letterStr].Remove(PassSymb);
+                    transMatrix[toState][symbolStr].Remove(PassSymb);
                 }
             }
         }
@@ -149,16 +143,40 @@ namespace Lab4_KNAe_to_KNA
             }
         }
 
-        private bool ValidateLetter(char letter)
+        public void PrintTransMatrix()
         {
-            if (!alphabet.Contains(letter))
+            Console.WriteLine();
+
+            Console.WriteLine($"Alphabet: {string.Join(", ", alphabet)}");
+            Console.WriteLine($"States: {string.Join(", ", transMatrix.Keys)}");
+            Console.WriteLine($"Initial state: {initState}");
+            Console.WriteLine($"Final state(s): {string.Join(", ", finalStates)}");
+            Console.WriteLine("Transition matrix:");
+            Console.WriteLine($"{new string(' ', 4)}\t{string.Join('\t', alphabet)}");
+
+            foreach (var line in transMatrix)
             {
-                Logs.Add($"Неверный символ '{letter}'");
-                Logs.Add("СЛОВО НЕ ПРИНЯТО");
-                return false;
+                string pred = new string(' ', 3);
+
+                if (initState.Contains(line.Key))
+                {
+                    pred = "->";
+                }
+                if (finalStates.Contains(line.Key))
+                {
+                    pred += (pred.Last() == ' ') ? "\b*" : "*";
+                }
+
+                Console.Write($"{pred.PadLeft(3)}{line.Key} |\t");
+
+                foreach (var item in line.Value.Values.Select(x => string.Join(',', x)))
+                {
+                    Console.Write($"{{{item}}}\t");
+                }
+                Console.WriteLine();
             }
 
-            return true;
+            Console.WriteLine();
         }
 
         public void PrintConfigFile()
@@ -170,7 +188,7 @@ namespace Lab4_KNAe_to_KNA
             Console.WriteLine($"Initial state: {initState}");
             Console.WriteLine($"Final state(s): {string.Join(", ", finalStates)}");
             Console.WriteLine("Transition matrix:");
-            Console.WriteLine($"{new string(' ', 4)}\t{string.Join('\t', alphabet)}");
+            Console.WriteLine($"{new string(' ', 4)}\t{string.Join('\t', alphabet)}\t{EpsSymb}");
 
             foreach (var line in transMatrix)
             {
