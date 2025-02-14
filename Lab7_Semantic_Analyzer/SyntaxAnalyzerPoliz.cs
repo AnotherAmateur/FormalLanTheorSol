@@ -32,7 +32,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
             if (_currentPos == _lexemes.Count)
             {
                 var lastLex = _lexemes[_currentPos - 1];
-                (int, int, int) position = new(lastLex.LinePos, lastLex.LexemePos, lastLex.CharPos);
+                (int, int, int) position = new(lastLex.LinePos, lastLex.LexemePos, lastLex.CharPosAbsolute);
                 ThrowParseException("Отсутствует следующая лексема.", position);
             }
 
@@ -44,7 +44,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
             if (_currentPos == _lexemes.Count)
             {
                 var lastLex = _lexemes[_currentPos - 1];
-                (int, int, int) position = new(lastLex.LinePos, lastLex.LexemePos, lastLex.CharPos);
+                (int, int, int) position = new(lastLex.LinePos, lastLex.LexemePos, lastLex.CharPosAbsolute);
                 ThrowParseException("Отсутствует следующая лексема.", position);
             }
 
@@ -192,7 +192,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
 
         private static void ThrowParseException(string message, Lexeme lexeme)
         {
-            throw new Exception($"Ошибка в синтаксическом анализе: Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPos}]. {message} Найдено: {lexeme.LexType}," +
+            throw new Exception($"Ошибка в синтаксическом анализе: Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPosAbsolute}]. {message} Найдено: {lexeme.LexType}," +
                 $" Категория: {lexeme.LexCat}, Значение: {lexeme.Value}");
         }
 

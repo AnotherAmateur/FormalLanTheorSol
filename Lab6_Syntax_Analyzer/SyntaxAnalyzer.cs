@@ -146,7 +146,7 @@ namespace Lab6_Syntax_Analyzer
 
         private static void ThrowParseException(string message, Lexeme lexeme)
         {
-            throw new Exception($"Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPos}]. {message} Найдено: {lexeme.LexType}," +
+            throw new Exception($"Позиция: [{lexeme.LinePos}/{lexeme.LexemePos}/{lexeme.CharPosAbsolute}]. {message} Найдено: {lexeme.LexType}," +
                 $" Категория: {lexeme.LexCat}, Значение: {lexeme.Value}");
         }
     }

@@ -6,7 +6,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
     {
         public static void Main(string[] args)
         {
-            string code = @"for j = 42 to 42
+            string code = @"for j = 42 to 43
                                 b = 56 - a
                                 c = b - a
                             next";
@@ -22,7 +22,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
                                   $"{resLexemes.Item2[i].LexCat,-11} | " +
                                   $"{resLexemes.Item2[i].LexType,-11} | " +
                                   $"{resLexemes.Item2[i].Value,-8} | " +
-                                  $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPos}]");
+                                  $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPosAbsolute}]");
             }
 
             Console.WriteLine();
@@ -33,7 +33,7 @@ namespace Lab7_Syntax_Analyzer_Poliz
                 Console.WriteLine($" Value: {LexAnalyzer.ErrorInfo.Value,-8} | " +
                                    $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
-                                   $"{LexAnalyzer.ErrorInfo.CharPos}]");
+                                   $"{LexAnalyzer.ErrorInfo.CharPosAbsolute}]");
                 Environment.Exit(-1);
             }
 

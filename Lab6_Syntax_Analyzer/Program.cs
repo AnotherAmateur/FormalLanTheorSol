@@ -23,7 +23,7 @@ namespace Lab6_Syntax_Analyzer
                                   $"{resLexemes.Item2[i].LexCat,-11} | " +
                                   $"{resLexemes.Item2[i].LexType,-11} | " +
                                   $"{resLexemes.Item2[i].Value,-8} | " +
-                                  $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPos}]");
+                                  $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPosAbsolute}]");
             }
 
             Console.WriteLine();
@@ -34,7 +34,7 @@ namespace Lab6_Syntax_Analyzer
                 Console.WriteLine($" Value: {LexAnalyzer.ErrorInfo.Value,-8} | " +
                                    $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
                                    $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
-                                   $"{LexAnalyzer.ErrorInfo.CharPos}]");
+                                   $"{LexAnalyzer.ErrorInfo.CharPosAbsolute}]");
                 Environment.Exit(-1);
             }
 
