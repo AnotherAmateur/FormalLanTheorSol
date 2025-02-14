@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            string code = @"for i = 1 + 2 to i + 23
+            string code = @"FOR i = 1 + 2 to i + 23
                                 a = a - 1 + 5
                                 b = 56
                             next";
@@ -23,10 +23,22 @@
                                   $"[{resLexemes.Item2[i].LinePos}/{resLexemes.Item2[i].LexemePos}/{resLexemes.Item2[i].CharPos}]");
             }
 
-            Console.WriteLine(resLexemes.Item1 ? "Success" : "Fail");
+            Console.WriteLine();
+
+            if (resLexemes.Item1 is false)
+            {
+                Console.WriteLine("FAIL INFO:");
+                Console.WriteLine($" Value: {LexAnalyzer.ErrorInfo.Value,-8} | " +
+                                   $"Position: [{LexAnalyzer.ErrorInfo.LinePos}/" +
+                                   $"{LexAnalyzer.ErrorInfo.LexemePos}/" +
+                                   $"{LexAnalyzer.ErrorInfo.CharPos}]");
+                return;
+            }
+
+            Console.WriteLine("SUCCESS");
             Console.WriteLine();
         }
     }
 }
 
-// todo позиция ошибки
+// DONE позиция ошибки

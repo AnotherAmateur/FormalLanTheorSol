@@ -5,6 +5,8 @@ namespace Lab5_Lexical_Analyzer
 {
     public static class LexAnalyzer
     {
+        public static Lexeme ErrorInfo { get; private set; }
+
         public static (bool, List<Lexeme>) Analyze(string codeStr)
         {
             States curState = States.Start;
@@ -20,6 +22,13 @@ namespace Lab5_Lexical_Analyzer
             int charOnLinePos = 0;
             int linePos = 0;
             int lexemePos = 0;
+
+            void HandleError(States state, string value, int linePos, int lexemePos, int charOnLinePos)
+            {
+                curState = States.Error;
+                isLexEnd = false;
+                ErrorInfo = new(default, default, value, linePos, lexemePos, charOnLinePos);
+            }
 
             while (curState != States.Final && curState != States.Error)
             {
@@ -84,8 +93,7 @@ namespace Lab5_Lexical_Analyzer
                             }
                             else
                             {
-                                curState = States.Error;
-                                isLexEnd = false;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                                 break;
                             }
 
@@ -138,8 +146,7 @@ namespace Lab5_Lexical_Analyzer
                             }
                             else
                             {
-                                curState = States.Error;
-                                isLexEnd = false;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                             }
 
                             break;
@@ -189,8 +196,7 @@ namespace Lab5_Lexical_Analyzer
                             }
                             else
                             {
-                                curState = States.Error;
-                                isLexEnd = false;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                             }
 
                             break;
@@ -231,8 +237,7 @@ namespace Lab5_Lexical_Analyzer
                             }
                             else
                             {
-                                curState = States.Error;
-                                isLexEnd = false;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                             }
 
                             break;
@@ -277,8 +282,7 @@ namespace Lab5_Lexical_Analyzer
                             }
                             else
                             {
-                                curState = States.Error;
-                                isLexEnd = false;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                             }
 
                             break;
@@ -317,8 +321,7 @@ namespace Lab5_Lexical_Analyzer
                             }
                             else
                             {
-                                curState = States.Error;
-                                isLexEnd = false;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                             }
 
                             break;
@@ -378,8 +381,7 @@ namespace Lab5_Lexical_Analyzer
                             else if (symbol == ';') { }
                             else
                             {
-                                isLexEnd = false;
-                                curState = States.Error;
+                                HandleError(prevState, lexemeCur.ToString().Trim() + symbol, linePos, lexemePos++, charOnLinePos);
                                 break;
                             }
 
@@ -406,8 +408,8 @@ namespace Lab5_Lexical_Analyzer
 
         private static void AddLexem(States state, string value, List<Lexeme> lexems, int linePos, int lexemePos, int charOnLinePos)
         {
-            var lexType = LexTypes.Const;
-            var lexCat = Categories.Const;
+            LexTypes lexType = default;
+            Categories lexCat = default;
 
             switch (state)
             {
